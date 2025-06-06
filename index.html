@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Experiencia AR - Club de Descuentos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Pantalla inicial -->
+  <div id="start-screen" class="screen">
+    <div class="content-box">
+      <h1>Experiencia Exclusiva</h1>
+      <p>Descubrí beneficios especiales escaneando el flyer</p>
+      <button id="start-btn">Iniciar experiencia</button>
+    </div>
+  </div>
+  
+  <!-- Pantalla de carga -->
+  <div id="loading-screen" class="screen" style="display: none;">
+    <div class="loading-box">
+      <h2>Cargando experiencia...</h2>
+      <div class="loader"></div>
+    </div>
+  </div>
+  
+  <!-- Pantalla AR -->
+  <div id="ar-container" style="display: none;">
+    <!-- Instrucciones -->
+    <div id="instructions" class="instructions">Apunta la cámara hacia el flyer</div>
+    
+    <!-- Mensaje superpuesto (HTML) -->
+    <div id="ar-message" class="ar-message" style="display: none;">
+      <div class="message-card">
+        <h1>FELICITACIONES</h1>
+        <h2>Ganaste un 20% de descuento</h2>
+        <p>Hace screen, mostrá esto en la tienda y canjealo o usalo en la web</p>
+        <div class="coupon">Cupón: #SOYDELCLUB</div>
+        <button onclick="window.open('https://whatsapp.com/channel/0029Vb6NylYAojYrtcsdhL0C', '_blank')" class="whatsapp-btn">
+          UNITE A NUESTRO CANAL
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mensaje de prueba simple -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: red; color: white; padding: 20px; z-index: 9999;">
+      <h2>¡FUNCIONA! Marcador detectado</h2>
+      <p>El audio debería estar sonando</p>
+    </div>
+  </div>
+  
+  <script>
+    console.log("Script cargado");
+    
+    // Función simple para probar
+    function testFunction() {
+      alert("¡El botón funciona!");
+      console.log("Función de prueba ejecutada");
+    }
+    
+    // Esperar a que el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("DOM listo");
+      
+      const button = document.getElementById('start-btn');
+      console.log("Botón encontrado:", button);
+      
+      if (button) {
+        // Agregar event listener
+        button.addEventListener('click', function() {
+          console.log("¡BOTÓN CLICKEADO!");
+          
+          // Cambiar pantallas
+          document.getElementById('start-screen').style.display = 'none';
+          document.getElementById('loading-screen').style.display = 'flex';
+          
+          console.log("Pantalla de carga mostrada");
+          
+          // Después de 2 segundos, cargar las librerías y mostrar AR
+          setTimeout(function() {
+            console.log("Cargando librerías AR...");
+            loadARLibraries();
+          }, 2000);
+        });
+        
+        console.log("Event listener agregado al botón");
+      } else {
+        console.error("No se encontró el botón");
+      }
+    });
+    
+    function loadARLibraries() {
+      console.log("Iniciando carga de librerías");
+      
+      // Cargar A-Frame
+      const aframeScript = document.createElement('script');
+      aframeScript.src = 'https://aframe.io/releases/1.4.0/aframe.min.js';
+      aframeScript.onload = function() {
+        console.log("A-Frame cargado");
+        
+        // Cargar MindAR
+        const mindarScript = document.createElement('script');
+        mindarScript.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js';
+        mindarScript.onload = function() {
+          console.log("MindAR cargado");
+          initAR();
+        };
+        mindarScript.onerror = function() {
+          console.error("Error cargando MindAR");
+          showSimpleMessage();
+        };
+        document.head.appendChild(mindarScript);
+      };
+      aframeScript.onerror = function() {
+        console.error("Error cargando A-Frame");
+        showSimpleMessage();
+      };
+      document.head.appendChild(aframeScript);
+    }
+    
+    function showSimpleMessage() {
+      console.log("Mostrando mensaje simple sin AR");
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('ar-container').style.display = 'block';
+      
+      // Mostrar mensaje inmediatamente
+      setTimeout(function() {
+        document.getElementById('ar-message').style.display = 'flex';
+        
+        // Reproducir audio si existe
+        const audio = new Audio('./audio.mp3');
+        audio.play().catch(e => console.log("No se pudo reproducir audio:", e));
+      }, 1000);
+    }
+    
+    function initAR() {
+      console.log("Inicializando AR");
+      
+      // Crear escena AR dinámicamente
+      const arContainer = document.getElementById('ar-container');
+      arContainer.innerHTML = `
+        <div id="instructions" class="instructions">Apunta la cámara hacia el flyer</div>
+        
+        <div id="ar-message" class="ar-message" style="display: none;">
+          <div class="message-card">
+            <h1>¡FELICITACIONES!</h1>
+            <h2>Ganaste un 20% de descuento</h2>
+            <p>Mostrá esto en la tienda y canjealo</p>
+            <div class="coupon">Cupón: #SOYDELCLUB</div>
+            <button onclick="window.open('https://whatsapp.com/channel/0029Vb6NylYAojYrtcsdhL0C', '_blank')" class="whatsapp-btn">
+              UNITE A NUESTRO CANAL
+            </button>
+          </div>
+        </div>
+        
+        <a-scene 
+          mindar-image="imageTargetSrc: ./target.mind;" 
+          color-space="sRGB" 
+          embedded
+          renderer="colorManagement: true; physicallyCorrectLights: true" 
+          vr-mode-ui="enabled: false" 
+          device-orientation-permission-ui="enabled: false">
+          
+          <a-assets>
+            <audio id="background-music" src="./frase.mp3" preload="auto"></audio>
+          </a-assets>
+          
+          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+          
+          <a-entity mindar-image-target="targetIndex: 0">
+            <a-box position="0 0 0.1" width="0.3" height="0.3" depth="0.3" color="#FF0000" visible="false" id="test-cube"></a-box>
+          </a-entity>
+        </a-scene>
+      `;
+      
+      // Ocultar loading y mostrar AR
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('ar-container').style.display = 'block';
+      
+      // Configurar eventos después de un delay
+      setTimeout(setupAREvents, 3000);
+    }
+    
+    function setupAREvents() {
+      console.log("Configurando eventos AR");
+      
+      const scene = document.querySelector('a-scene');
+      if (scene) {
+        scene.addEventListener('targetFound', function() {
+          console.log("¡Marcador encontrado!");
+          
+          // Mostrar cubo
+          const cube = document.getElementById('test-cube');
+          if (cube) cube.setAttribute('visible', 'true');
+          
+          // Mostrar mensaje
+          const message = document.getElementById('ar-message');
+          if (message) message.style.display = 'flex';
+          
+          // Reproducir audio
+          const audio = document.getElementById('background-music');
+          if (audio) audio.play().catch(e => console.log("Error audio:", e));
+          
+          // Ocultar instrucciones
+          const instructions = document.getElementById('instructions');
+          if (instructions) instructions.style.display = 'none';
+        });
+        
+        scene.addEventListener('targetLost', function() {
+          console.log("Marcador perdido");
+          
+          const cube = document.getElementById('test-cube');
+          if (cube) cube.setAttribute('visible', 'false');
+          
+          const message = document.getElementById('ar-message');
+          if (message) message.style.display = 'none';
+          
+          const instructions = document.getElementById('instructions');
+          if (instructions) instructions.style.display = 'block';
+        });
+        
+        console.log("Eventos AR configurados");
+      } else {
+        console.error("No se encontró la escena");
+      }
+    }
+  </script>
+</body>
+</html>
