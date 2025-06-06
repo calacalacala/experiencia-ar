@@ -31,9 +31,9 @@
     <!-- Mensaje superpuesto (HTML) -->
     <div id="ar-message" class="ar-message" style="display: none;">
       <div class="message-card">
-        <h1>FELICITACIONES</h1>
+        <h1>¡FELICITACIONES!</h1>
         <h2>Ganaste un 20% de descuento</h2>
-        <p>Hace screen, mostrá esto en la tienda y canjealo o usalo en la web</p>
+        <p>Mostrá esto en la tienda y canjealo</p>
         <div class="coupon">Cupón: #SOYDELCLUB</div>
         <button onclick="window.open('https://whatsapp.com/channel/0029Vb6NylYAojYrtcsdhL0C', '_blank')" class="whatsapp-btn">
           UNITE A NUESTRO CANAL
@@ -144,7 +144,7 @@
           <div class="message-card">
             <h1>¡FELICITACIONES!</h1>
             <h2>Ganaste un 20% de descuento</h2>
-            <p>Mostrá esto en la tienda y canjealo</p>
+            <p>Hace screen, mostrá esto en la tienda y canjealo o usalo en la web.</p>
             <div class="coupon">Cupón: #SOYDELCLUB</div>
             <button onclick="window.open('https://whatsapp.com/channel/0029Vb6NylYAojYrtcsdhL0C', '_blank')" class="whatsapp-btn">
               UNITE A NUESTRO CANAL
@@ -196,9 +196,18 @@
           const message = document.getElementById('ar-message');
           if (message) message.style.display = 'flex';
           
-          // Reproducir audio
+          // REPRODUCIR el audio (se reanuda desde donde se pausó)
           const audio = document.getElementById('background-music');
-          if (audio) audio.play().catch(e => console.log("Error audio:", e));
+          if (audio) {
+            audio.play().catch(e => {
+              console.log("Error audio:", e);
+              // Si falla la reproducción automática, intentar después de interacción
+              document.addEventListener('click', function() {
+                audio.play().catch(err => console.log("Error en segundo intento:", err));
+              }, { once: true });
+            });
+            console.log("Audio reanudado");
+          }
           
           // Ocultar instrucciones
           const instructions = document.getElementById('instructions');
@@ -208,12 +217,22 @@
         scene.addEventListener('targetLost', function() {
           console.log("Marcador perdido");
           
+          // Ocultar cubo
           const cube = document.getElementById('test-cube');
           if (cube) cube.setAttribute('visible', 'false');
           
+          // Ocultar mensaje
           const message = document.getElementById('ar-message');
           if (message) message.style.display = 'none';
           
+          // PAUSAR el audio cuando se pierde el marcador
+          const audio = document.getElementById('background-music');
+          if (audio) {
+            audio.pause();
+            console.log("Audio pausado");
+          }
+          
+          // Mostrar instrucciones nuevamente
           const instructions = document.getElementById('instructions');
           if (instructions) instructions.style.display = 'block';
         });
